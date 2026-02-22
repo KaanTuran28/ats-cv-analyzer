@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATS Simülasyon Motoru</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md">
+        <h1 class="text-2xl font-bold mb-4 text-gray-800">ATS CV Analiz Sistemi</h1>
+        
+        <form id="atsForm" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700">İş İlanı Detayları</label>
+                <textarea id="job_description" rows="5" class="mt-1 block w-full border border-gray-300 rounded-md p-2" required></textarea>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700">CV Yükle (PDF)</label>
+                <input type="file" id="cv_file" accept=".pdf" class="mt-1 block w-full border border-gray-300 rounded-md p-2" required>
+            </div>
+            
+            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full font-bold" id="submitBtn">Analiz Et</button>
+        </form>
+
+        <div id="results" class="mt-8 hidden">
+            <h2 class="text-xl font-bold border-b pb-2 mb-4">Analiz Sonucu</h2>
+            
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-blue-50 p-4 rounded border border-blue-200">
+                    <span class="block text-sm text-blue-600 font-bold">Genel ATS Skoru</span>
+                    <span class="text-3xl font-bold text-blue-800" id="res_skor"></span>
+                </div>
+                <div class="bg-green-50 p-4 rounded border border-green-200">
+                    <span class="block text-sm text-green-600 font-bold">Geçme Olasılığı</span>
+                    <span class="text-3xl font-bold text-green-800" id="res_olasilik"></span>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <h3 class="font-bold text-green-700">Güçlü Alanlar</h3>
+                <ul id="res_guc" class="list-disc pl-5 text-sm"></ul>
+            </div>
+
+            <div class="mt-4">
+                <h3 class="font-bold text-red-700">Kritik Eksikler</h3>
+                <ul id="res_eksik" class="list-disc pl-5 text-sm"></ul>
+            </div>
+
+            <div class="mt-4">
+                <h3 class="font-bold text-orange-700">Eksik Anahtar Kelimeler</h3>
+                <p id="res_kelime" class="text-sm bg-orange-50 p-2 rounded"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('atsForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            btn.innerText = "Analiz Ediliyor (Bu işlem birkaç saniye sürebilir)...";
+            btn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('job_description', document.getElementById('job_description').value);
+            formData.append('cv_file', document.getElementById('cv_file').files[0]);
+
+          try {
+                const response = await fetch('http://localhost:8000/analyze', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                // EĞER BACKEND'DEN HATA GELDİYSE ÇÖKME, EKRANA YAZ
+                if (data.error) {
+                    alert("Arka Plan Hatası: " + data.details);
+                    console.error("Detaylı Hata:", data);
+                    return; // İşlemi durdur
+                }
+                
+                document.getElementById('results').classList.remove('hidden');
+                document.getElementById('res_skor').innerText = data.skor;
+                document.getElementById('res_olasilik').innerText = data.ats_gecme_olasiligi;
+                
+                document.getElementById('res_guc').innerHTML = data.guc_alanlar.map(i => `<li>${i}</li>`).join('');
+                document.getElementById('res_eksik').innerHTML = data.kritik_eksikler.map(i => `<li>${i}</li>`).join('');
+                document.getElementById('res_kelime').innerText = data.eksik_anahtar_kelimeler.join(', ');
+
+            } catch (error) {
+                alert("Analiz sırasında bir hata oluştu.");
+                console.error(error);
+            } finally {
+                btn.innerText = "Analiz Et";
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+# Python Önbellek Dosyaları
+__pycache__/
+*.py[cod]
+
+# Çevresel Değişkenler ve Şifreler
+.env
+
+# Kullanıcıların yüklediği geçici CV dosyaları
+temp_*.pdf

@@ -1,7 +1,7 @@
 from fastapi import FastAPI, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
 from google import genai
-from google.genai import types # YENİ EKLENEN SATIR
+from google.genai import types 
 import pdfplumber
 import json
 import os
@@ -10,7 +10,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # Şimdilik herkese açık, Vercel linkini alınca burayı güncelleyeceğiz.
+    allow_origins=["*"], 
     allow_methods=["*"],
     allow_headers=["*"],
 )
